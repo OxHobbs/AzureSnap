@@ -42,7 +42,17 @@ function Restore-AzureVMSnapshot
 
     $snapshots = Get-LeafSnapshots -OSDiskResourceID $vmOsDiskId -ResourceGroupName $SnapshotResourceGroupName
 
+    if ($SnapshotName)
+    {
+        $snapshot = $snapshots | Where-Object { $_.Name -eq $SnapshotName }
+    }
+    else
+    {
+        # Need to inquire from the user what Snapshot to use        
+        $snapshot = Get-DesiredSnapshot -Snapshots $snapshots
+    }
 
+    if (-not $snapshot) { throw "Snapshot not found or selected" }
     
 
 }
