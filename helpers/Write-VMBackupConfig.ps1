@@ -14,12 +14,15 @@
     )
 
     $backupPath = "$PSScriptRoot\..\backup\$($VM.Name).json"
+
+    Write-Verbose "Converting the VM object to JSON"
     $json = ConvertTo-Json -InputObject $VM
 
     $backupFileExists = Test-Path $backupPath
 
     if (($Clobber -and $backupFileExists) -or (-not $backupFileExists))
     {
+        Write-Verbose "Writing backup file to $backupPath"
         $json | Out-File -FilePath $backupPath -Force 
     }
     else
