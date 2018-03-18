@@ -27,17 +27,24 @@ function New-VMConfig
         OsType = $osDisk.OsType 
     }
     
-    $newId = (Get-Random -Minimum 1000 -Maximum 99999).ToString()
+    $newId = (Get-Random -Minimum 10000 -Maximum 99999).ToString()
     $newOSDiskName = $oldVMProps.OSDiskName + "_$newId"
+    Write-Verbose "Generated new name of OS disk -> $newOSDiskName"
     $diskConfig = New-AzureRmDiskConfig -SkuName $oldVMProps.StorageTier -Location $snapshot.Location -SourceResourceId $snapshot.Id -CreateOption Copy
+
+    Write-Verbose "Creating a new disk based off of the snapshot"
     $disk = New-AzureRmDisk -Disk $diskConfig -ResourceGroupName $oldVMProps.resourceGroupName -DiskName $newOSDiskName -ErrorAction Stop
+
+    Write-Verbose "Creating the Azure VM Configuration"
     $newVM = New-AzureRmVMConfig -VMName $vm.Name -VMSize $oldVMProps.Size
     if ($oldVMProps.OsType -eq 'Linux')
     {
+        Write-Verbose "Configuring the OS Disk to Linux"
         $newVM = Set-AzureRmVMOSDisk -VM $newVM -ManagedDiskId $disk.Id -Linux -CreateOption Attach    
     }
     elseif ($oldVMProps.OsType -eq 'Windows')
     {
+        Write-Verbose "Configuring the OS disk to Windows"
         $newVM = Set-AzureRmVMOSDisk -VM $newVM -ManagedDiskId $disk.Id -Windows -CreateOption Attach          
     }
 
@@ -46,6 +53,8 @@ function New-VMConfig
     {
         $nicName = $nic.id.split('/')[-1]
         $nicObj = Get-AzureRmNetworkInterface -Name $nicName -ResourceGroupName $vm.ResourceGroupName
+        Write-Verbose "Adding NIC -> $nicName"
+        Write-Verbose "NIC ID -> $($nicObj.Id)"
         $null = Add-AzureRmVMNetworkInterface -VM $newVM -NetworkInterface $nicObj
     }   
     
@@ -53,6 +62,8 @@ function New-VMConfig
     foreach ($dataDisk in $dataDisks)
     {
         $dataDiskObj = Get-AzureRmDisk -ResourceGroupName $vm.ResourceGroupName -DiskName $dataDisk.Name
+        Write-Verbose "Adding data disk -> $($dataDisk.Name)"
+        Write-Verbose "Disk ID -> $($dataDiskObj.id)"
         $null = Add-AzureRmVMDataDisk -ManagedDiskId $dataDiskObj.Id -VM $newVM -CreateOption Attach -Lun $dataDisk.Lun
     }
 
