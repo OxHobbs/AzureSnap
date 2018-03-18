@@ -86,7 +86,8 @@ function Restore-AzureVMSnapshot
         }
         catch
         {
-            Write-Error $error[0].Exception.ToString()
+            # Write-Error $error[0].Exception.ToString()
+            Write-Error "$($_.Exception.Message)"
         }
     }
 }

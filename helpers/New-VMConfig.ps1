@@ -49,13 +49,22 @@ function New-VMConfig
     }
 
     $nics = $vm.NetworkProfile.NetworkInterfaces
+    $nicCounter = 1
     foreach ($nic in $nics)
     {
         $nicName = $nic.id.split('/')[-1]
         $nicObj = Get-AzureRmNetworkInterface -Name $nicName -ResourceGroupName $vm.ResourceGroupName
         Write-Verbose "Adding NIC -> $nicName"
         Write-Verbose "NIC ID -> $($nicObj.Id)"
-        $null = Add-AzureRmVMNetworkInterface -VM $newVM -NetworkInterface $nicObj
+        if ($nicCounter -eq 1)
+        {
+            $null = Add-AzureRmVMNetworkInterface -VM $newVM -Id $nicObj.Id -Primary
+        }
+        elseif ($nicCounter -gt 1)
+        {
+            $null = Add-AzureRmVMNetworkInterface -VM $newVM -NetworkInterface $nicObj
+        }
+        # $nicCounter++        
     }   
     
     $dataDisks = $vm.StorageProfile.DataDisks
