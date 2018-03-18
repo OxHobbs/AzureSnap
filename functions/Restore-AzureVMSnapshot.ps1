@@ -70,7 +70,23 @@ function Restore-AzureVMSnapshot
     }
     Write-Verbose "Validation passed"
 
-    
-
-
+    if ($PSCmdlet.ShouldProcess($vm.Name, 'Stop, Remove and Create from a VM based on Snapshot'))
+    {
+        try
+        {
+            $null = Stop-AVM -VM $vm -ErrorAction Stop
+            Write-Verbose "Removing the VM ($($vm.Name))"
+            $null = Remove-AzureRmVM -Name $vm.Name -ResourceGroupName $vm.ResourceGroupName -Force -ErrorAction Stop
+            Write-Verbose "Removed the VM ($($vm.Name))"
+            Write-Verbose "Creating the VM Configuration"
+            $newVM = New-VMConfig -VM $vm -Snapshot $snapshot -OSDisk $osDisk -ErrorAction Stop
+            Write-Verbose "Creating the VM..."
+            New-AzureRmVM -VM $newVM -ResourceGroupName $vm.ResourceGroupName -Location $snapshot.location -ErrorAction Stop        
+            Write-Verbose "Created the Virtual Machine"
+        }
+        catch
+        {
+            Write-Error $error[0].Exception.ToString()
+        }
+    }
 }
