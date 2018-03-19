@@ -84,9 +84,10 @@ function Restore-AzureVMSnapshot
             $newVM = New-VMConfig -VM $vm -Snapshot $snapshot -OSDisk $osDisk -ErrorAction Stop
 
             Write-Verbose "Creating the VM..."
-            New-AzureRmVM -VM $newVM -ResourceGroupName $vm.ResourceGroupName -Location $snapshot.location -ErrorAction Stop        
-            
+            $out = New-AzureRmVM -VM $newVM -ResourceGroupName $vm.ResourceGroupName -Location $snapshot.location -ErrorAction Stop        
             Write-Verbose "Created the Virtual Machine"
+
+            Remove-VMBackupConfig -VM $vm
         }
         catch
         {
