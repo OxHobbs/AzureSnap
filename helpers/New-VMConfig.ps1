@@ -52,7 +52,8 @@ function New-VMConfig
     foreach ($nic in $nics)
     {
         $nicName = $nic.id.split('/')[-1]
-        $nicObj = Get-AzureRmNetworkInterface -Name $nicName -ResourceGroupName $vm.ResourceGroupName
+        # $nicObj = Get-AzureRmNetworkInterface -Name $nicName -ResourceGroupName $vm.ResourceGroupName
+        $nicObj = Find-NIC -NicName $nicName -VMResourceGroup $vm.ResourceGroupName
         Write-Verbose "Adding NIC -> $nicName"
         Write-Verbose "NIC ID -> $($nicObj.Id)"
 
@@ -63,7 +64,8 @@ function New-VMConfig
     $dataDisks = $vm.StorageProfile.DataDisks
     foreach ($dataDisk in $dataDisks)
     {
-        $dataDiskObj = Get-AzureRmDisk -ResourceGroupName $vm.ResourceGroupName -DiskName $dataDisk.Name
+        # $dataDiskObj = Get-AzureRmDisk -ResourceGroupName $vm.ResourceGroupName -DiskName $dataDisk.Name
+        $dataDiskObj = Find-DataDisk -DiskName $dataDisk.Name -VMResourceGroup $vm.ResourceGroupName
         Write-Verbose "Adding data disk -> $($dataDisk.Name)"
         Write-Verbose "Disk ID -> $($dataDiskObj.id)"
         $null = Add-AzureRmVMDataDisk -ManagedDiskId $dataDiskObj.Id -VM $newVM -CreateOption Attach -Lun $dataDisk.Lun

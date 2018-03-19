@@ -1,6 +1,6 @@
 function Restore-AzureVMSnapshot
 {
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 
     param
     (
@@ -41,7 +41,7 @@ function Restore-AzureVMSnapshot
     # $vmOsDiskId = Get-VMOSDiskResourceID -ResourceGroupName $VMResourceGroupName -VMName $VMName
     $vmOsDiskId = $vm.StorageProfile.OsDisk.ManagedDisk.Id
 
-    $snapshots = Get-LeafSnapshots -OSDiskResourceID $vmOsDiskId -ResourceGroupName $SnapshotResourceGroupName
+    $snapshots = Get-LeafSnapshots -OSDiskResourceID $vmOsDiskId # -ResourceGroupName $SnapshotResourceGroupName
     if (-not $snapshots) { throw "No Snapshots found in resource group ($($SnapshotResourceGroupName)) for vm ($($VM.Name))" }
     else { $snapshots = $snapshots | Sort-Object -Property TimeCreated -Descending }
 
@@ -75,13 +75,17 @@ function Restore-AzureVMSnapshot
         try
         {
             $null = Stop-AVM -VM $vm -ErrorAction Stop
+
             Write-Verbose "Removing the VM ($($vm.Name))"
             $null = Remove-AzureRmVM -Name $vm.Name -ResourceGroupName $vm.ResourceGroupName -Force -ErrorAction Stop
             Write-Verbose "Removed the VM ($($vm.Name))"
+
             Write-Verbose "Creating the VM Configuration"
             $newVM = New-VMConfig -VM $vm -Snapshot $snapshot -OSDisk $osDisk -ErrorAction Stop
+
             Write-Verbose "Creating the VM..."
             New-AzureRmVM -VM $newVM -ResourceGroupName $vm.ResourceGroupName -Location $snapshot.location -ErrorAction Stop        
+            
             Write-Verbose "Created the Virtual Machine"
         }
         catch

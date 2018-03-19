@@ -20,6 +20,7 @@ function Format-SnapshotSelection
             Number = $count
             Name = $snapshot.Name
             DateCreated = $snapshot.TimeCreated
+            ResourceGroup = $snapshot.ResourceGroupName
             StorageTier = $snapshot.Sku.Tier
         }
         $objs += New-Object -TypeName PSObject -Property $props
