@@ -37,6 +37,6 @@ function Stop-AVM
 
     if ($vmStatus -eq 'deallocated')
     {
-        Write-Verbose "VM, ($($vm.Name) is already stopped and deallocated"
+        Write-Verbose "VM ($($vm.Name)) is already stopped and deallocated"
     }
 }
