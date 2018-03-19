@@ -31,7 +31,6 @@ function Stop-AVM
                 Write-Verbose "Error thrown stopping and deallocating"
                 Write-Error $error[0].Exception.ToString()
             }
-
         }
     }
 
