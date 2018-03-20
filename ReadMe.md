@@ -24,6 +24,7 @@ Get-Command -Module AzureSnap
 ```PowerShell
 Get-Help Restore-AzureVMSnapshot -Full
 ```
+
 ## Cmdlets
 
 ### New-AzureVMSnapshot
