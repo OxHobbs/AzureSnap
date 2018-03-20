@@ -1,3 +1,33 @@
+<#
+.SYNOPSIS
+Create a Snapshot based off of the OS disk of a specified VM.
+
+.DESCRIPTION
+This cmdlet will create a Snapshot based off of the OS disk of the specified VM.  It is assumed that the snapshot will be 
+stored on the same tier of storage as the current disk and the same resource group.  This snapshot can be restored quickly
+with the Restore-AzureVMSnapshot cmdlet.  Common parameters are supported (Verbose, Confirm, etc.)
+
+.PARAMETER ResourceGroupName
+[Required] Specify the name of the resource group in which the VM exists.
+
+.PARAMETER VMName
+[Required] Specify the name of the VM of which to create a snapshot.
+
+.PARAMETER SnapshotName
+[Optional] Specify the name of the snapshot that will be created.  If no snapshot name is provided then one will be generated using the 
+Name of the VM, a time stamp and a randomly generated string to protect against collisions.
+
+.EXAMPLE
+The below example will create a Snapshot based off the OS disk for VM MYSQLDBVM01.  This snapshot will be named something similar to
+MYSQLDBVM01-20180322-d4lsO
+
+New-AzureVMSnapshot -ResourceGroupName MyRG -VMName MYSQLDBVM01
+
+.EXAMPLE
+The below example will create a Snapshot based off the OS disk for VM MYFS01. The snapshot will be named MYFS01-Snapshot1
+
+New-AzureVMSnapshot -ResourceGroupName MyRG -VMName MYFS01 -SnapshotName MYFS01-Snapshot1
+#>
 function New-AzureVMSnapshot
 {
     [CmdletBinding(SupportsShouldProcess = $true)]
@@ -14,7 +44,7 @@ function New-AzureVMSnapshot
 
         [Parameter()]
         [String]
-        $SnapshotName = ($VMName + (Get-Date -Format yyyyMMdd).ToString() + "-" + $((65..90) + (97..122) | Get-Random -Count 5 | % { [char]$_ })).Replace(' ', '') 
+        $SnapshotName = ($VMName + "-" + (Get-Date -Format yyyyMMdd).ToString() + "-" + $((65..90) + (97..122) | Get-Random -Count 5 | % { [char]$_ })).Replace(' ', '') 
     )
 
     Write-Verbose "Looking for the VM ($VMName) in resource group ($ResourceGroupName)"

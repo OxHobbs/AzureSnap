@@ -1,3 +1,64 @@
+<#
+.SYNOPSIS
+Restore a VM to a previously captured snapshot.
+
+.DESCRIPTION
+This cmdlet will restore a VM to a previously created snapshot.  It will restore the original data disks and NICs to the VM as they were
+at the time the cmdlet is being executed.  This is done by removing the VM and re-creating it with the Snapshot disk and then attaching
+data disks and NICs.
+
+.PARAMETER VMResourceGroupName
+[Required] The name of the resource group in which the VM exists.
+
+.PARAMETER VMName
+[Required] The name of the VM to be restored.
+
+.PARAMETER SnapshotName
+[Optional] The name of the desired snapshot to use for restoration. If no Snapshot name is specified then the
+user will be provided a list of Snapshots from which to choose.  By default, only snapshots that are spawned off
+of the OS disk will be presented for selection.
+
+.PARAMETER IncludeAllSnapshots
+[Optional] Switch this on to include all Snapshots for possible restoration, not just spawned Snapshots.  This may be useful
+when it is desired to restore to a Snapshot that is no longer a child of the currently attached OS disk.
+
+.PARAMETER Clobber
+[Optional] Switch this to allow the module to over-write a previously captured JSON representation of a VM.  This is done for
+safety reasons in case a VM was removed and creation failed.  If this happens, this JSON file provides the capability to rebuild
+the VM if needed.
+
+.EXAMPLE
+The below example restores a Snapshot to a VM allowing the user to select a Snapshot from a presented list.
+
+Restore-AzureVMSnapshot -VMResourceGroupName frontend -VMName myfe01
+
+Number Name                        DateCreated          ResourceGroup StorageTier
+------ ----                        -----------          ------------- -----------
+     1 myfe01-snapshot2            3/20/2018 2:32:15 PM frontend       Premium
+     2 myfe01-20180320-GIyHx       3/20/2018 2:31:18 PM frontend       Premium
+     3 myfe01-20171211-CcfGv       3/20/2018 2:30:19 PM frontend       Premium
+
+Enter the number that corresponds to the desired snapshot for restoration: 1
+
+.EXAMPLE 
+This example restores a Snapshot to specified snapshot.  It also does not ask for confirmation.
+
+Restore-AzureVMSnapshot -VMResourceGroupName frontend -VMName myfe01 -SnapshotName myfe01-snapshot2 -Confirm:$false
+
+.EXAMPLE
+This example shows how to be provided a list of all Snapshots in the subscription as an option for restoration.
+
+Restore-AzureVMSnapshot -VMResourceGroupName frontend -VMName myfe01 -SnapshotName myfe01-snapshot2 -IncludeAllSnapshots
+
+Number Name                        DateCreated          ResourceGroup StorageTier
+------ ----                        -----------          ------------- -----------
+     1 myfe01-snapshot2            1/24/2018 2:32:15 PM frontend       Premium
+     2 myfe01-20180320-GIyHx       3/20/2018 2:31:18 PM frontend       Premium
+     3 myfe01-20170111-CcfGv       1/11/2017 2:30:19 PM frontend       Premium
+     4 myfe02-20180123-Wdaef       2/3/2018  7:30:30 PM bozo           Premium
+
+Enter the number that corresponds to the desired snapshot for restoration: 1
+#>
 function Restore-AzureVMSnapshot
 {
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -11,10 +72,6 @@ function Restore-AzureVMSnapshot
         [Parameter(Mandatory)]
         [String]
         $VMName,
-
-        [Parameter()]
-        [String]
-        $SnapshotResourceGroupName = $VMResourceGroupName,
 
         [Parameter()]
         [String]
@@ -52,11 +109,11 @@ function Restore-AzureVMSnapshot
     }
     else
     {
-        Get-LeafSnapshots -OSDiskResourceID $vmOsDiskId # -ResourceGroupName $SnapshotResourceGroupName
+        Get-LeafSnapshots -OSDiskResourceID $vmOsDiskId 
     }
     Write-Verbose "Grabbed $($snapshots.Count) snapshots"
 
-    if (-not $snapshots) { throw "No Snapshots found in resource group ($($SnapshotResourceGroupName)) for vm ($($VM.Name))" }
+    if (-not $snapshots) { throw "No Snapshots found for vm ($($VM.Name))" }
     else { $snapshots = $snapshots | Sort-Object -Property TimeCreated -Descending }
 
     if ($SnapshotName)
