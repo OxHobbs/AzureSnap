@@ -22,6 +22,10 @@ function Restore-AzureVMSnapshot
 
         [Parameter()]
         [Switch]
+        $IncludeAllSnapshots,
+
+        [Parameter()]
+        [Switch]
         $Clobber
     )
 
@@ -40,8 +44,18 @@ function Restore-AzureVMSnapshot
     Write-Verbose "Calling Get-VMOSDiskResourceID to obtain the ID of the OS disk on $($vm.Name)"
     # $vmOsDiskId = Get-VMOSDiskResourceID -ResourceGroupName $VMResourceGroupName -VMName $VMName
     $vmOsDiskId = $vm.StorageProfile.OsDisk.ManagedDisk.Id
+    $osDisk = Get-AzureRmDisk -ResourceGroupName $vm.ResourceGroupName -DiskName $vm.StorageProfile.OsDisk.Name    
 
-    $snapshots = Get-LeafSnapshots -OSDiskResourceID $vmOsDiskId # -ResourceGroupName $SnapshotResourceGroupName
+    $snapshots = if ($IncludeAllSnapshots)
+    {
+        Get-AzureRmSnapshot | Where-Object { $_.Location -eq $vm.Location -and $_.Sku.Name -eq $osDisk.Sku.Name } 
+    }
+    else
+    {
+        Get-LeafSnapshots -OSDiskResourceID $vmOsDiskId # -ResourceGroupName $SnapshotResourceGroupName
+    }
+    Write-Verbose "Grabbed $($snapshots.Count) snapshots"
+
     if (-not $snapshots) { throw "No Snapshots found in resource group ($($SnapshotResourceGroupName)) for vm ($($VM.Name))" }
     else { $snapshots = $snapshots | Sort-Object -Property TimeCreated -Descending }
 
@@ -63,7 +77,6 @@ function Restore-AzureVMSnapshot
     Write-Verbose "Moving forward with snapshot, $($snapshot.Name)"
 
     Write-Verbose "Validating that the disk and the snapshot are of similar configuration"
-    $osDisk = Get-AzureRmDisk -ResourceGroupName $vm.ResourceGroupName -DiskName $vm.StorageProfile.OsDisk.Name
     if (-not (Confirm-DiskAndSnapshot -Snapshot $snapshot -OSDisk $osDisk))
     {
         throw 'validation error between disk and snapshot'
