@@ -35,3 +35,7 @@ This cmdlet only creates a snapshot of the OS disk, not data disks.  However, al
 ### Restore-AzureVMSnapshot
 
 Restores an Azure Virtual Machine's OS disk to a previously created snapshot.  This process will handle removing the VM and re-creating it with the same data disk and network card configuration by reattaching the disks and NICs.
+
+### Disclaimer
+
+This module is not recommended for production use.  It is best to follow vendor recommendations for VM backups.
