@@ -39,3 +39,9 @@ Restores an Azure Virtual Machine's OS disk to a previously created snapshot.  T
 ### Disclaimer
 
 This module is not recommended for production use.  It is best to follow vendor recommendations for VM backups.
+
+### Changelog
+
+__v0.5.0__
+
+* Fixed a bug where the storage sku passed to the new VM config was being passed incorrectly.

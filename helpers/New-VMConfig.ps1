@@ -23,7 +23,7 @@ function New-VMConfig
         Size = $vm.HardwareProfile.VmSize
         OsDiskName = $vm.StorageProfile.OsDisk.Name
         SnapshotName = $snapshot.Name
-        StorageTier = $osDisk.Sku.Tier
+        StorageTier = $osDisk.Sku.Name
         OsType = $osDisk.OsType 
     }
     
