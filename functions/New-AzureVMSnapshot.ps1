@@ -45,6 +45,7 @@ function New-AzureVMSnapshot
         [Parameter()]
         [String]
         $SnapshotName = ($VMName + "-" + (Get-Date -Format yyyyMMdd).ToString() + "-" + $((65..90) + (97..122) | Get-Random -Count 5 | % { [char]$_ })).Replace(' ', '') 
+
     )
 
     Write-Verbose "Looking for the VM ($VMName) in resource group ($ResourceGroupName)"
@@ -62,11 +63,10 @@ function New-AzureVMSnapshot
     {
         Write-Verbose "Unable to find the OS Disk in the VM resource group"
         Write-Verbose "Attempting to locate OS Disk through the resource and filtering"
-        $osDiskId = $vm.StorageProfile.OsDisk.ManagedDisk.Id        
-        $osDiskResource = Get-AzureRmResource -ResourceId $osDiskId 
+        $osDiskId = $vm.StorageProfile.OsDisk.ManagedDisk.Id
+        $osDiskResource = Get-AzureRmResource -ResourceId $osDiskId
         $osDisk = Get-AzureRmDisk -DiskName $osDiskName -ResourceGroupName $osDiskResource.ResourceGroupName -ErrorAction Stop
         Write-Verbose "Found the disk through filtering resource"
-        
     }
 
     try
