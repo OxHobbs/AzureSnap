@@ -115,7 +115,7 @@ function New-InvestigatorVM
                     'https://raw.githubusercontent.com/OxHobbs/investigate/master/investigate.py',
                     'https://raw.githubusercontent.com/OxHobbs/investigate/master/requirements.txt'
                 )
-                commandToExecute = 'yum -y install python-pip && pip install -r requirements.txt && python investigate.py'
+                commandToExecute = 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py" && python get-pip.py && pip install -r requirements.txt && python investigate.py'
             }
             Set-AzureRmVMExtension -Publisher Microsoft.Azure.Extensions -Version 2.0 -Name CustomScript -Settings $CustomScriptProps -Type CustomScript -ResourceGroupName $ResourceGroupName -VMName $VMName -Location $vnet.Location
         }
