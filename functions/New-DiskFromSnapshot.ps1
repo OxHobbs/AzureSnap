@@ -35,7 +35,7 @@ function New-DiskFromSnapshot
     try
     {
         $diskConfig = New-AzureRmDiskConfig -SourceResourceId $SnapshotId -CreateOption Copy -SkuName $SkuName -OsType $OsType -DiskSizeGB $DiskSizeGB -Location $Location
-        $disk = New-AzureRmDisk -ResourceGroupName $DiskResourceGroupName -DiskName $DiskName -Disk $diskConfig
+        New-AzureRmDisk -ResourceGroupName $DiskResourceGroupName -DiskName $DiskName -Disk $diskConfig
     }
     catch
     {

@@ -1,4 +1,4 @@
-function Create-SnapshotName
+function New-SubjectDiskName
 {
     param
     (
@@ -13,6 +13,6 @@ function Create-SnapshotName
 
     $OsDiskId = Get-VMOSDiskResourceId -ResourceGroupName $ResourceGroupName -VMName $VMName
     $diskResource = Get-AzureRmResource -ResourceId $OsDiskId
-    
+
     return "$($diskResource.Name)_subject_$(Get-RandomLowerString)"
 }
