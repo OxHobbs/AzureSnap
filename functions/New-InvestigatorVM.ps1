@@ -24,6 +24,14 @@ function New-InvestigatorVM
         [Microsoft.Azure.Commands.Compute.Automation.Models.PSDisk]
         $DataDisk,
 
+        [Parameter(Mandatory)]
+        [String]
+        $StorageAccountName,
+
+        [Parameter()]
+        [String]
+        $StorageAccountResourceGroup = $ResourceGroupName,
+
         [Parameter()]
         [String]
         $VMSize = 'Standard_B1s',
@@ -90,6 +98,8 @@ function New-InvestigatorVM
         $nicParams.Add('NetworkSecurityGroupId', $nsg.Id)
     }
 
+    $saKey = (Get-AzureRmStorageAccountKey -Name $StorageAccountName -ResourceGroupName $StorageAccountResourceGroup)[0].Value
+
     if ($PSCmdlet.ShouldProcess($VMName, "Create investigator VM"))
     {
         try
@@ -105,7 +115,7 @@ function New-InvestigatorVM
             $null = Set-AzureRmVMSourceImage -VM $vmConfig -PublisherName $ImageOffer.Publisher -Offer $ImageOffer.Offer -Skus $ImageOffer.Skus -Version Latest
             $null = Add-AzureRmVMNetworkInterface -VM $vmConfig -NetworkInterface $InvestigatorNic
             $null = Add-AzureRmVMDataDisk -VM $vmConfig -CreateOption Attach -ManagedDiskId $DataDisk.Id -Lun 0 -StorageAccountType $DataDisk.Sku.Name
-            $null = Set-AzureRmVMBootDiagnostics -Disable -VM $vmConfig 
+            $null = Set-AzureRmVMBootDiagnostics -Disable -VM $vmConfig
 
             Write-Verbose "Creating new VM with new VM Configuration object -> $($vmConfig)"
             New-AzureRmVM -ResourceGroupName $ResourceGroupName -Location $Location  -VM $vmConfig
@@ -115,8 +125,9 @@ function New-InvestigatorVM
                     'https://raw.githubusercontent.com/OxHobbs/investigate/master/investigate.py',
                     'https://raw.githubusercontent.com/OxHobbs/investigate/master/requirements.txt'
                 )
-                commandToExecute = 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py" && python get-pip.py && pip install -r requirements.txt && python investigate.py'
+                commandToExecute = "curl 'https://bootstrap.pypa.io/get-pip.py' -o 'get-pip.py' && python get-pip.py && pip install -r requirements.txt && python investigate.py '$StorageAccountName' '$sakey'"
             }
+
             Set-AzureRmVMExtension -Publisher Microsoft.Azure.Extensions -Version 2.0 -Name CustomScript -Settings $CustomScriptProps -Type CustomScript -ResourceGroupName $ResourceGroupName -VMName $VMName -Location $vnet.Location
         }
         catch
